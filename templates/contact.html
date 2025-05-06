@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Contact</title>
+    <style>
+      body {
+        font-family: Arial;
+        background-color: #fbe9f9;
+        padding: 40px;
+      }
+      form {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 400px;
+        margin: auto;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      }
+      input, textarea {
+        width: 100%;
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      button {
+        background-color: #ff69b4;
+        color: white;
+        border: none;
+        padding: 10px;
+        width: 100%;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #ff1493;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Formulaire de Contact</h2>
+    <form>
+      <label>Nom :</label>
+      <input type="text" name="nom" placeholder="Entrez votre nom">
+
+      <label>Prénom :</label>
+      <input type="text" name="prenom" placeholder="Entrez votre prénom">
+
+      <label>Message :</label>
+      <textarea name="message" rows="5" placeholder="Votre message..."></textarea>
+
+      <button type="submit">Envoyer</button>
+    </form>
+  </body>
+</html>
