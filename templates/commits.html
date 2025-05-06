@@ -1,52 +1,44 @@
 <!DOCTYPE html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Commits Minute par Minute</title>
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-  </head>
-  <body>
-    <h2>Commits minute par minute</h2>
-    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+<head>
+  <meta charset="UTF-8" />
+  <title>Commits GitHub</title>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+<body>
+  <h2>Commits minute par minute</h2>
+  <div id="chart_div"></div>
 
-    <script>
-      google.charts.load('current', { packages: ['corechart'] });
-      google.charts.setOnLoadCallback(drawChart);
+  <script>
+    google.charts.load('current', {packages: ['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
 
-      function drawChart() {
-        fetch('/commits-data/')
-          .then(response => {
-            if (!response.ok) {
-              throw new Error("Erreur lors de la récupération des données.");
-            }
-            return response.json();
-          })
-          .then(result => {
-            const data = result.data;
+    function drawChart() {
+      fetch('/commits-data/')
+        .then(response => response.json())
+        .then(data => {
+          const dataTable = new google.visualization.DataTable();
+          dataTable.addColumn('string', 'Minute');
+          dataTable.addColumn('number', 'Commits');
 
-            const dataTable = new google.visualization.DataTable();
-            dataTable.addColumn('string', 'Minute');
-            dataTable.addColumn('number', 'Commits');
-
-            data.forEach(item => {
-              dataTable.addRow([item.minute, item.nb]);
-            });
-
-            const options = {
-              title: 'Commits GitHub par minute',
-              hAxis: { title: 'Minute' },
-              vAxis: { title: 'Nombre de commits' },
-              legend: { position: 'none' }
-            };
-
-            const chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
-            chart.draw(dataTable, options);
-          })
-          .catch(error => {
-            console.error('Erreur:', error);
-            document.getElementById('chart_div').innerText = 'Erreur lors du chargement des données.';
+          data.data.forEach(entry => {
+            dataTable.addRow([entry.minute, entry.nb]);
           });
-      }
-    </script>
-  </body>
+
+          const options = {
+            title: 'Activité GitHub par minute',
+            hAxis: {title: 'Minute'},
+            vAxis: {title: 'Nombre de commits'},
+            legend: 'none'
+          };
+
+          const chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+          chart.draw(dataTable, options);
+        })
+        .catch(error => {
+          document.getElementById('chart_div').innerText = 'Erreur lors du chargement des données.';
+        });
+    }
+  </script>
+</body>
 </html>
