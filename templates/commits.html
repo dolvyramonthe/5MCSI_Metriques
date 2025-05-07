@@ -2,42 +2,166 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Commits GitHub</title>
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Commits - Statistiques</title>
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #eef2f7;
+      color: #1f2937;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 10px 25px rgba(50, 50, 93, 0.08);
+      transition: transform 0.3s ease;
+    }
+
+    .container:hover {
+      transform: translateY(-5px);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+
+    #chart_div {
+      height: 500px;
+      margin-top: 20px;
+    }
+
+    .info-panel {
+      background: linear-gradient(135deg, #e3e0f9, #e0f2f1);
+      border-left: 5px solid #5e60ce;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    .info-panel h3 {
+      font-size: 1.4rem;
+      color: #3c096c;
+      margin-top: 0;
+    }
+
+    .info-panel p {
+      font-size: 1.05rem;
+      color: #374151;
+    }
+
+    .loading {
+      text-align: center;
+      font-size: 18px;
+      color: #666;
+      animation: pulse 1.2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+      #chart_div {
+        height: 400px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h2>Commits minute par minute</h2>
-  <div id="chart_div"></div>
+  <div class="container">
+    <h1>📈 Statistiques de Commits</h1>
+
+    <div class="info-panel">
+      <h3>Vue d'ensemble</h3>
+      <p>Le graphique ci-dessous illustre l’activité des commits sur le projet GitHub, minute par minute. Chaque barre représente une minute de contribution.</p>
+    </div>
+
+    <div id="loading" class="loading">Chargement des données en cours...</div>
+    <div id="chart_div"></div>
+  </div>
 
   <script>
-    google.charts.load('current', {packages: ['corechart']});
-    google.charts.setOnLoadCallback(drawChart);
+    google.charts.load('current', { packages: ['corechart'] });
+    google.charts.setOnLoadCallback(fetchCommitData);
 
-    function drawChart() {
+    function fetchCommitData() {
       fetch('/commits-data/')
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
-          const dataTable = new google.visualization.DataTable();
-          dataTable.addColumn('string', 'Minute');
-          dataTable.addColumn('number', 'Commits');
-
-          data.data.forEach(entry => {
-            dataTable.addRow([entry.minute, entry.nb]);
-          });
-
-          const options = {
-            title: 'Activité GitHub par minute',
-            hAxis: {title: 'Minute'},
-            vAxis: {title: 'Nombre de commits'},
-            legend: 'none'
-          };
-
-          const chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
-          chart.draw(dataTable, options);
+          document.getElementById('loading').style.display = 'none';
+          drawChart(data);
         })
         .catch(error => {
-          document.getElementById('chart_div').innerText = 'Erreur lors du chargement des données.';
+          document.getElementById('loading').textContent = 'Erreur de chargement.';
+          console.error('Erreur :', error);
         });
+    }
+
+    function drawChart(data) {
+      const chartData = [['Minute', 'Commits']];
+      data.results.forEach(entry => {
+        chartData.push([entry.minute, entry.count]);
+      });
+
+      const dataTable = google.visualization.arrayToDataTable(chartData);
+
+      const options = {
+        backgroundColor: '#ffffff',
+        colors: ['#5e60ce'], // violet/bleu
+        title: 'Commits par Minute',
+        titleTextStyle: {
+          color: '#2c3e50',
+          fontSize: 22,
+          bold: true
+        },
+        hAxis: {
+          title: 'Minute',
+          textStyle: { color: '#475569' },
+          titleTextStyle: { color: '#475569' },
+          gridlines: { color: '#e0e7ff' }
+        },
+        vAxis: {
+          title: 'Commits',
+          textStyle: { color: '#475569' },
+          titleTextStyle: { color: '#475569' },
+          gridlines: { color: '#e0e7ff' }
+        },
+        chartArea: { width: '80%', height: '70%' },
+        legend: { position: 'none' },
+        bar: { groupWidth: '60%' },
+        animation: {
+          duration: 800,
+          startup: true,
+          easing: 'out'
+        }
+      };
+
+      const chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+      chart.draw(dataTable, options);
+
+      window.addEventListener('resize', () => chart.draw(dataTable, options));
     }
   </script>
 </body>
