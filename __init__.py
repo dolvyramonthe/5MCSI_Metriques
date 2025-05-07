@@ -38,27 +38,40 @@ def histogramme():
     return render_template("histogramme.html")
 
 @app.route('/commits-data/')
-def commits_data():
-    try:
-        url = 'https://api.github.com/repos/OpenRSI/5MCSI_Metriques/commits'
-        response = requests.get(url)
-        response.raise_for_status()  # Déclenche une exception si erreur HTTP
-        commits = response.json()
-
-        minute_count = {}
-        for commit in commits:
-            date_str = commit.get("commit", {}).get("author", {}).get("date")
-            if date_str:
-                dt = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%SZ')
-                minute = dt.strftime('%H:%M')
-                minute_count[minute] = minute_count.get(minute, 0) + 1
-
-        data = [{'minute': m, 'nb': c} for m, c in sorted(minute_count.items())]
-        return jsonify(data=data)
-
-    except Exception as e:
-        # Affiche l'erreur dans la réponse pour t’aider à déboguer
-        return jsonify(error=str(e)), 500
+def get_commits_data():
+    # Requête à l'API GitHub pour obtenir la liste des commits du dépôt
+    response = urlopen('https://api.github.com/repos/MassinissaBEY/5MCSI_Metriques/commits')
+    raw_content = response.read()
+    commits_data = json.loads(raw_content.decode('utf-8'))
+    
+    # Dictionnaire pour compter le nombre de commits par minute
+    commit_minutes = {}
+    
+    # Analyse des dates des commits et regroupement à la minute près
+    for commit in commits_data:
+        commit_date = commit.get('commit', {}).get('author', {}).get('date')
+        if commit_date:
+            # Conversion de la chaîne de date en objet datetime
+            date_object = datetime.strptime(commit_date, '%Y-%m-%dT%H:%M:%SZ')
+            
+            # Clé représentant l'instant à la minute près
+            minute_key = f"{date_object.year}-{date_object.month:02d}-{date_object.day:02d} {date_object.hour:02d}:{date_object.minute:02d}"
+            
+            # Incrémentation du compteur pour cette minute
+            if minute_key in commit_minutes:
+                commit_minutes[minute_key] += 1
+            else:
+                commit_minutes[minute_key] = 1
+    
+    # Transformation des données en liste de dictionnaires pour l'affichage
+    result = []
+    for minute, count in commit_minutes.items():
+        result.append({"minute": minute, "count": count})
+    
+    # Tri des résultats par ordre chronologique
+    result = sorted(result, key=lambda x: x["minute"])
+    
+    return jsonify(results=result)
 
 @app.route('/commits/')
 def graph_commits():
